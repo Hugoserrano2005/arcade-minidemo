@@ -1,34 +1,72 @@
 """
-Sprite Collect Coins
+Sprite Collect Coins with Different Levels
 
 Simple program to show basic sprite usage.
 
 Artwork from https://kenney.nl
 
 If Python and Arcade are installed, this example can be run from the command line with:
-python -m arcade.examples.sprite_collect_coins
+python -m arcade.examples.sprite_collect_coins_diff_levels
 """
 
 import random
 import arcade
+import os
 
-# --- Constants ---
-SPRITE_SCALING_PLAYER = 0.1
-SPRITE_SCALING_COIN = .175
-COIN_COUNT = 50
+SPRITE_SCALING = 0.5
 
 SCREEN_WIDTH = 900
 SCREEN_HEIGHT = 600
-SCREEN_TITLE = "Sprite Collect Coins Example"
+SCREEN_TITLE = "Sprite Collect Coins with Different Levels Example"
+
+
+class FallingCoin(arcade.Sprite):
+    """ Simple sprite that falls down """
+
+    def update(self):
+        """ Move the coin """
+
+        # Fall down
+        self.center_y -= 2
+
+        # Did we go off the screen? If so, pop back to the top.
+        if self.top < 0:
+            self.bottom = SCREEN_HEIGHT
+
+
+class RisingCoin(arcade.Sprite):
+    """ Simple sprite that falls up """
+
+    def update(self):
+        """ Move the coin """
+
+        # Move up
+        self.center_y += 2
+
+        # Did we go off the screen? If so, pop back to the bottom.
+        if self.bottom > SCREEN_HEIGHT:
+            self.top = 0
 
 
 class MyGame(arcade.Window):
-    """ Our custom Window Class"""
+    """
+    Main application class.
+    """
 
-    def __init__(self):
-        """ Initializer """
+    def __init__(self, width, height, title):
+        """ Initialize """
+
         # Call the parent class initializer
-        super().__init__(SCREEN_WIDTH, SCREEN_HEIGHT, SCREEN_TITLE)
+        super().__init__(width, height, title)
+
+        # Set the working directory (where we expect to find files) to the same
+        # directory this .py file is in. You can leave this out of your own
+        # code, but it is needed to easily run the examples using "python -m"
+        # as mentioned at the top of this program.
+        file_path = os.path.dirname(os.path.abspath(__file__))
+        os.chdir(file_path)
+
+        self.background = None
 
         # Variables that will hold sprite lists
         self.player_list = None
@@ -38,37 +76,19 @@ class MyGame(arcade.Window):
         self.player_sprite = None
         self.score = 0
 
+        self.level = 1
+
         # Don't show the mouse cursor
         self.set_mouse_visible(False)
 
-        self.background = None
+        # Set the background color
+        arcade.set_background_color(arcade.color.AMAZON)
 
-    def setup(self):
-        """ Set up the game and initialize the variables. """
-
-        self.background = arcade.load_texture("cesped.png")
-
-        # Sprite lists
-        self.player_list = arcade.SpriteList()
-        self.coin_list = arcade.SpriteList()
-
-        # Score
-        self.score = 0
-
-        # Set up the player
-        # Character image from kenney.nl
-        img = "link.gif"
-        self.player_sprite = arcade.Sprite(img, SPRITE_SCALING_PLAYER)
-        self.player_sprite.center_x = 50
-        self.player_sprite.center_y = 50
-        self.player_list.append(self.player_sprite)
-
-        # Create the coins
-        for i in range(COIN_COUNT):
+    def level_1(self):
+        for i in range(300):
 
             # Create the coin instance
-            # Coin image from kenney.nl
-            coin = arcade.Sprite("rupia.png", SPRITE_SCALING_COIN)
+            coin = arcade.Sprite("rupia.png", SPRITE_SCALING / 3)
 
             # Position the coin
             coin.center_x = random.randrange(SCREEN_WIDTH)
@@ -77,43 +97,109 @@ class MyGame(arcade.Window):
             # Add the coin to the lists
             self.coin_list.append(coin)
 
+    def level_2(self):
+        for i in range(300):
+
+            # Create the coin instance
+            coin = FallingCoin("rupia.png", SPRITE_SCALING / 3)
+
+            # Position the coin
+            coin.center_x = random.randrange(SCREEN_WIDTH)
+            coin.center_y = random.randrange(SCREEN_HEIGHT, SCREEN_HEIGHT * 2)
+
+            # Add the coin to the lists
+            self.coin_list.append(coin)
+
+    def level_3(self):
+        for i in range(300):
+
+            # Create the coin instance
+            coin = RisingCoin("rupia.png", SPRITE_SCALING / 3)
+
+            # Position the coin
+            coin.center_x = random.randrange(SCREEN_WIDTH)
+            coin.center_y = random.randrange(-SCREEN_HEIGHT, 0)
+
+            # Add the coin to the lists
+            self.coin_list.append(coin)
+
+    def setup(self):
+        """ Set up the game and initialize the variables. """
+
+        self.background = arcade.load_texture(":resources:images/topdown_tanks/tileGrass1.png")
+
+        self.score = 0
+        self.level = 1
+
+        # Sprite lists
+        self.player_list = arcade.SpriteList()
+        self.coin_list = arcade.SpriteList()
+
+        # Set up the player
+        self.player_sprite = arcade.Sprite("link.gif",
+                                           SPRITE_SCALING/5)
+        self.player_sprite.center_x = 50
+        self.player_sprite.center_y = 50
+        self.player_list.append(self.player_sprite)
+
+        self.level_1()
+
     def on_draw(self):
-        """ Draw everything """
+        """
+        Render the screen.
+        """
+
+        # This command has to happen before we start drawing
         self.clear()
 
-        arcade.draw_lrwh_rectangle_textured(0, 0, SCREEN_WIDTH, SCREEN_HEIGHT,self.background)
+        arcade.draw_lrwh_rectangle_textured(0, 0, SCREEN_WIDTH, SCREEN_HEIGHT, self.background)
 
+        # Draw all the sprites.
+        self.player_sprite.draw()
         self.coin_list.draw()
-        self.player_list.draw()
 
         # Put the text on the screen.
-        output = f"Gemas recolectadas: {self.score}"
-        arcade.draw_text(text=output, start_x=10, start_y=20,
-                         color=arcade.color.WHITE, font_size=14)
+        output = f"Score: {self.score}"
+        arcade.draw_text(output, 10, 20, arcade.color.WHITE, 15)
+
+        output = f"Level: {self.level}"
+        arcade.draw_text(output, 10, 35, arcade.color.WHITE, 15)
 
     def on_mouse_motion(self, x, y, dx, dy):
-        """ Handle Mouse Motion """
-
-        # Move the center of the player sprite to match the mouse x, y
+        """
+        Called whenever the mouse moves.
+        """
         self.player_sprite.center_x = x
         self.player_sprite.center_y = y
 
     def on_update(self, delta_time):
         """ Movement and game logic """
 
+        # Call update on all sprites (The sprites don't do much in this
+        # example though.)
+        self.coin_list.update()
+
         # Generate a list of all sprites that collided with the player.
-        coins_hit_list = arcade.check_for_collision_with_list(self.player_sprite,
-                                                              self.coin_list)
+        hit_list = arcade.check_for_collision_with_list(self.player_sprite, self.coin_list)
 
         # Loop through each colliding sprite, remove it, and add to the score.
-        for coin in coins_hit_list:
+        for coin in hit_list:
             coin.remove_from_sprite_lists()
             self.score += 1
+
+        # See if we should go to level 2
+        if len(self.coin_list) == 0 and self.level == 1:
+            self.level += 1
+            self.level_2()
+        # See if we should go to level 3
+        elif len(self.coin_list) == 0 and self.level == 2:
+            self.level += 1
+            self.level_3()
 
 
 def main():
     """ Main function """
-    window = MyGame()
+    window = MyGame(SCREEN_WIDTH, SCREEN_HEIGHT, SCREEN_TITLE)
     window.setup()
     arcade.run()
 
