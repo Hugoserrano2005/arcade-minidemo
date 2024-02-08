@@ -13,11 +13,11 @@ import random
 import arcade
 
 # --- Constants ---
-SPRITE_SCALING_PLAYER = 0.5
-SPRITE_SCALING_COIN = .25
+SPRITE_SCALING_PLAYER = 0.1
+SPRITE_SCALING_COIN = .175
 COIN_COUNT = 50
 
-SCREEN_WIDTH = 800
+SCREEN_WIDTH = 900
 SCREEN_HEIGHT = 600
 SCREEN_TITLE = "Sprite Collect Coins Example"
 
@@ -41,10 +41,12 @@ class MyGame(arcade.Window):
         # Don't show the mouse cursor
         self.set_mouse_visible(False)
 
-        arcade.set_background_color(arcade.color.AMAZON)
+        self.background = None
 
     def setup(self):
         """ Set up the game and initialize the variables. """
+
+        self.background = arcade.load_texture("cesped.png")
 
         # Sprite lists
         self.player_list = arcade.SpriteList()
@@ -55,7 +57,7 @@ class MyGame(arcade.Window):
 
         # Set up the player
         # Character image from kenney.nl
-        img = ":resources:images/animated_characters/female_person/femalePerson_idle.png"
+        img = "link.gif"
         self.player_sprite = arcade.Sprite(img, SPRITE_SCALING_PLAYER)
         self.player_sprite.center_x = 50
         self.player_sprite.center_y = 50
@@ -66,8 +68,7 @@ class MyGame(arcade.Window):
 
             # Create the coin instance
             # Coin image from kenney.nl
-            coin = arcade.Sprite(":resources:images/items/coinGold.png",
-                                 SPRITE_SCALING_COIN)
+            coin = arcade.Sprite("rupia.png", SPRITE_SCALING_COIN)
 
             # Position the coin
             coin.center_x = random.randrange(SCREEN_WIDTH)
@@ -79,11 +80,14 @@ class MyGame(arcade.Window):
     def on_draw(self):
         """ Draw everything """
         self.clear()
+
+        arcade.draw_lrwh_rectangle_textured(0, 0, SCREEN_WIDTH, SCREEN_HEIGHT,self.background)
+
         self.coin_list.draw()
         self.player_list.draw()
 
         # Put the text on the screen.
-        output = f"Score: {self.score}"
+        output = f"Gemas recolectadas: {self.score}"
         arcade.draw_text(text=output, start_x=10, start_y=20,
                          color=arcade.color.WHITE, font_size=14)
 
